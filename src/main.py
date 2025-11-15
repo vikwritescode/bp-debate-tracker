@@ -8,10 +8,10 @@ def main():
     tab_url = sys.argv[1]
     slug = sys.argv[2]
     name = sys.argv[3]
-    s = get_speaker(tab_url, slug, name)[0]
-    r = get_results(tab_url, slug, s)[0]
-    sp = get_speaks(tab_url, slug, s)
-    p = get_positions("https://cambridgeiv2025.calicotab.com", "_", r, s["team"])
+    s = get_speaker(tab_url, slug, name)[0] # speaker object
+    r = get_results(tab_url, slug, s)[0] # round and results as object
+    sp = get_speaks(tab_url, slug, s) # hashmap
+    p = get_positions("https://cambridgeiv2025.calicotab.com", "_", r, s["team"]) #hashmap
 
     for round_ in r:
         round_["pos"] = p.get(round_["round"], "ABS")
