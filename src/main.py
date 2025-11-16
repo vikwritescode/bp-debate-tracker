@@ -1,5 +1,7 @@
 from utils import *
+from storage import *
 import sys
+from pathlib import Path
 
 def main():
     if len(sys.argv) < 4:
@@ -8,19 +10,36 @@ def main():
     tab_url = sys.argv[1]
     slug = sys.argv[2]
     name = sys.argv[3]
-    s = get_speaker(tab_url, slug, name)[0] 
-    r = get_results(tab_url, slug, s)[0]
-    sp = get_speaks(tab_url, slug, s) 
-    p = get_positions(tab_url, "_", r, s["team"])
-
-    for round_ in r:
-        round_["pos"] = p.get(round_["round"], "ABS")
-        round_["speaks"] = sp.get(round_["round"], 0)
-        print(
-            f"speaker got {round_['points']} points and "
-            f"{round_['speaks']} speaks as {round_['pos']} "
-            f"in round {round_['round']}."
-        )
-
+    
+    PICKLE_PATH = "perf.pkl"
+    s_list = get_speaker(tab_url, slug, name)
+    index = -1
+    if len(s_list) == 0:
+        print("no such speaker")
+        return
+    if len(s_list) > 1:
+            print(f"There are multiple speakers.")
+            print("".join([f"{i}: {speaker["name"]}\n" for i, speaker in enumerate(s_list)]))
+            valid_input = False
+            while not valid_input:
+                try:
+                    index = int(input("select an entry\n> "))
+                except Exception as e:
+                    pass
+                if index >= 0 and index < len(s_list):
+                    valid_input = True
+                
+    new_records = generate_records(tab_url, slug, name, (0 if index == -1 else index))
+    
+    perf = DataStore()
+    # if there are records, 
+    if Path(PICKLE_PATH).is_file():
+        perf.load_from_pickle(PICKLE_PATH)
+        print("loading from pickle")
+    else:
+        perf.make_new()
+    perf.add_entries(new_records)
+    print(perf.get_store())
+    perf.store_to_pickle(PICKLE_PATH)
 if __name__ == "__main__":
     main()
