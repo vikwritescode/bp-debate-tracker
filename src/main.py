@@ -4,14 +4,36 @@ import sys
 from pathlib import Path
 
 def main():
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 3:
         print("e: too few arguments!")
         return
-    tab_url = sys.argv[1]
-    slug = sys.argv[2]
-    name = sys.argv[3]
     
     PICKLE_PATH = "perf.pkl"
+    
+    tab_url = sys.argv[1]
+    name = sys.argv[2]
+    
+    slugs = get_slugs(tab_url)
+    if len(slugs) < 1:
+        print("There are no tournaments.")
+        return
+    slug_index = -1
+    if len(slugs) > 1:
+        print(f"There are multiple tournaments.")
+        print("".join([f"{i}: {slug}\n" for i, slug in enumerate(slugs)]))
+        valid_slug = False
+        
+        while not valid_slug:
+            try:
+                slug_index = int(input("select an entry\n> "))
+            except Exception as e:
+                    pass
+            if slug_index >= 0 and slug_index < len(slugs):
+                    valid_slug = True
+                    
+    slug = slugs[slug_index]
+    
+    
     s_list = get_speaker(tab_url, slug, name)
     index = -1
     if len(s_list) == 0:
@@ -28,7 +50,7 @@ def main():
                     pass
                 if index >= 0 and index < len(s_list):
                     valid_input = True
-                
+    
     new_records = generate_records(tab_url, slug, name, (0 if index == -1 else index))
     
     perf = DataStore()
