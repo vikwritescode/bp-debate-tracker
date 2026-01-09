@@ -61,7 +61,7 @@ def main():
     else:
         perf.make_new()
     perf.add_entries(new_records)
-    print(perf.get_store())
+    print(perf.get_position_averages())
     perf.store_to_pickle(PICKLE_PATH)
 if __name__ == "__main__":
     main()

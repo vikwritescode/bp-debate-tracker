@@ -1,2 +1,4 @@
 perf.pkl
 src/utils/__pycache__/
+serviceAccountKey.json
+.env
