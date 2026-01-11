@@ -5,4 +5,4 @@ class DebateCreate(BaseModel):
     date: str
     position: Literal['OG', 'OO', 'CG', 'CO']
     points: int = Field(ge=0, le=3)
-    speaks: int
+    speaks: int = Field(ge=0, le=100)

@@ -1,11 +1,21 @@
 import requests
-def get_speaker(link :str, slug: str, name: str):
-    # TODO: 
-    # get the speakers
+def get_speaker(link :str, slug: str, name: str) -> list:
+    """
+    get speakers which at least partially match a string
+    
+    :param link: tab URL
+    :type link: str
+    :param slug: tournament slug
+    :type slug: str
+    :param name: speaker name
+    :type name: str
+    :return: list of speakers urls which partially match
+    :rtype: list
+    """
     try:
         response = requests.get(f"{link}/api/v1/tournaments/{slug}/speakers")
     except requests.exceptions.RequestException as e:
-        raise RuntimeError("Could not make a request to URL")
+        raise ValueError("Could not make a request to URL. Double check.")
     if response.status_code != 200:
         raise RuntimeError(f"[{response.status_code}] unwanted response: {response.reason}")
     data = response.json()
