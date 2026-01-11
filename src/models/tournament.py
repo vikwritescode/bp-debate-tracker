@@ -9,3 +9,9 @@ class SpeakerRef(BaseModel):
     name: str
     team: str
     url: str
+
+class TournamentImportModel(BaseModel):
+    url: str
+    slug: str
+    speaker: str
+    date: str

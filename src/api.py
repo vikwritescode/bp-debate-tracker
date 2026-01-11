@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS debates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     date DATE NOT NULL,
-    position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO')),
+    position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'ABS')),
     points INTEGER NOT NULL CHECK(points >= 0 AND points <= 3),
     speaks INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
@@ -85,7 +85,14 @@ def api_get_names(url: str, slug: str, speaker: str, user: dict = Depends(get_cu
     try:
         return service.get_speaker(url, slug, speaker)
     except Exception:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Skill Issue") 
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Skill Issue")
+
+@app.post("/api/import")
+def api_import_from_url(tourn_data: TournamentImportModel, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    try:
+        return service.import_records(user["uid"], tourn_data.url, tourn_data.slug, tourn_data.speaker, tourn_data.date, db)
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
