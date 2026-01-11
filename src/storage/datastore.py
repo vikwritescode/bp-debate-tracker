@@ -15,3 +15,6 @@ class DataStore:
         temp_df = pd.DataFrame(entries)
         if not temp_df.empty:
             self.__store = pd.concat([self.__store, temp_df], ignore_index=True)
+    
+    def get_position_averages(self):
+        return self.__store.groupby(["pos"]).mean()
