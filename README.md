@@ -12,8 +12,11 @@ This, at the moment, also allows for records to be made through simply a URL and
 - Get position wide averages
 - View Debates Individually
 - Sign Up and Login
-
-## Coming Soon
 - Add Individual Records
 - Delete Records
+
+## Coming Soon
 - Display Average and Standard Deviation of Speaks
+
+## Potentially in the works
+- Motions and Categories
