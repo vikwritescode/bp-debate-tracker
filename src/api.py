@@ -57,42 +57,120 @@ app.add_middleware(
 
 @app.get("/api")
 def root(user: dict = Depends(get_current_user)):
+    """
+    Returns a message. Message should appear if authenticated.
+    
+    :param user: user object
+    :type user: dict
+    """
     return {"message": "API is indeed running."}
 
 @app.get("/api/get")
 def api_get(user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
-    f = service.get_all_debates(user["uid"], db)
-    return {"debates": f}
+    """
+    Docstring for api_get
+    
+    :param user: user dictionary (firebase)
+    :type user: dict
+    :param db: sqlite database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        f = service.get_all_debates(user["uid"], db)
+        return {"debates": f}
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
 
 @app.post("/api/add")
 def api_post(debate: DebateCreate, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Add another debate to the database.
+    
+    :param debate: Data for the table
+    :type debate: DebateCreate
+    :param user: the user object
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
     try:
         attempt = service.insert_debate(debate, user["uid"], db)
         return {"id": attempt, "message": "Successfully inserted record"}
-    except sqlite3.Error as e:
+    except RuntimeError as e:
         db.rollback()
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Database Error")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, e)
     
 @app.get("/api/tournaments")
 def api_get_tournaments(url: str, user: dict = Depends(get_current_user)):
+    """
+    get tournaments that exist on a tab
+    
+    :param url: Tab URL
+    :type url: str
+    :param user: firebase user
+    :type user: dict
+    """
     try:
         return service.get_tournaments(url)
-    except Exception:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Server Error")
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e))
 
 @app.get("/api/speakers")
 def api_get_names(url: str, slug: str, speaker: str, user: dict = Depends(get_current_user)):
+    """
+    Get list of speakers in a tournament that match a slug
+    
+    :param url: tab URL
+    :type url: str
+    :param slug: tournament slug
+    :type slug: str
+    :param speaker: speaker name (must be "in" their name on tab)
+    :type speaker: str
+    :param user: firebase user
+    :type user: dict
+    """
     try:
         return service.get_speaker(url, slug, speaker)
-    except Exception:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Skill Issue")
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @app.post("/api/import")
 def api_import_from_url(tourn_data: TournamentImportModel, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Docstring for api_import_from_url
+    
+    :param tourn_data: Data needed to fetch the tournament records
+    :type tourn_data: TournamentImportModel
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 connection
+    :type db: sqlite3.Connection
+    """
     try:
         return service.import_records(user["uid"], tourn_data.url, tourn_data.slug, tourn_data.speaker, tourn_data.date, db)
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
+    
+@app.delete("/api/delete/{debate_id}")
+def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Delete debate index {debate_id} if it exists and is owned by user
+    
+    :param debate_id: The debate to delete
+    :type debate_id: int
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database object
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.delete_record(user["uid"], debate_id, db)
+    except RuntimeError as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User Record Not Found")
+        
+    
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
