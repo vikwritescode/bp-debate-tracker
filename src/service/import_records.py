@@ -38,7 +38,7 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         speaker_rsp = requests.get(speaker_url)
         s = speaker_rsp.json()
         r = get_results(tab_url, slug, s)[0]
-        sp = get_speaks(tab_url, slug, s) 
+        sp = get_speaks(tab_url, slug, speaker_url) 
         p = get_positions(tab_url, "_", r, s["team"])
     except Exception as e:
         raise RuntimeError("error fetching participant data")

@@ -1,5 +1,5 @@
 import requests
-def get_speaks(tab_url: str, slug: str, speaker_object: dict):
+def get_speaks(tab_url: str, slug: str, speaker_url: str):
     # TODO: implement error handling
     # call API for team
     speaks = {}
@@ -11,7 +11,6 @@ def get_speaks(tab_url: str, slug: str, speaker_object: dict):
         raise RuntimeError(f"[{response.status_code}] unwanted response: {response.reason}")
     data = response.json()
     # filter to get team stats
-    speaker_url = speaker_object["url"]
     relevant = [speaker["rounds"] for speaker in data if speaker["speaker"] == speaker_url]
     if len(relevant) == 0:
         return dict()
