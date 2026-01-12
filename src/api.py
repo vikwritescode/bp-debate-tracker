@@ -151,6 +151,26 @@ def api_import_from_url(tourn_data: TournamentImportModel, user: dict = Depends(
         return service.import_records(user["uid"], tourn_data.url, tourn_data.slug, tourn_data.speaker, tourn_data.date, db)
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
+    
+@app.delete("/api/delete/{debate_id}")
+def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Delete debate index {debate_id} if it exists and is owned by user
+    
+    :param debate_id: The debate to delete
+    :type debate_id: int
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database object
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.delete_record(user["uid"], debate_id, db)
+    except RuntimeError as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User Record Not Found")
+        
+    
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
