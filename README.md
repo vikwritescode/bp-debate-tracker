@@ -14,9 +14,8 @@ This, at the moment, also allows for records to be made through simply a URL and
 - Sign Up and Login
 - Add Individual Records
 - Delete Records
+- View Motions and Infoslides
 
 ## Coming Soon
 - Display Average and Standard Deviation of Speaks
-
-## Potentially in the works
-- Motions and Categories
+- Automatic Categorisation of Motions
