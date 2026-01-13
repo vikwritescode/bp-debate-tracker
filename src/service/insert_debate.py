@@ -13,8 +13,8 @@ def insert_debate(debate: DebateCreate, uid: str, db: sqlite3.Connection):
     """
     try:
         cur = db.cursor()
-        cur.execute("INSERT INTO debates (user_id, date, position, points, speaks) VALUES (?, ?, ?, ?, ?)",
-        (uid, debate.date, debate.position, debate.points, debate.speaks))
+        cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (uid, debate.date, debate.position, debate.points, debate.speaks, debate.infoslide, debate.motion))
         db.commit()
         return cur.lastrowid
     except sqlite3.DatabaseError as e:

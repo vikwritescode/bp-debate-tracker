@@ -1,7 +1,4 @@
-from utils import get_speaker
-from utils import get_results
-from utils import get_positions
-from utils import get_speaks
+from utils import get_data
 
 import requests
 import sqlite3
@@ -35,28 +32,20 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     validate_date_format(date)
     records = []
     try:
-        speaker_rsp = requests.get(speaker_url)
-        s = speaker_rsp.json()
-        r = get_results(tab_url, slug, s)[0]
-        sp = get_speaks(tab_url, slug, s) 
-        p = get_positions(tab_url, "_", r, s["team"])
-    except Exception as e:
-        raise RuntimeError("error fetching participant data")
-    try:
-        for round in r:
-            if p.get(round["round"], "ABS") == "ABS":
-                # skip "ABS rounds"
-                continue
+        tab_data = get_data(tab_url, slug, speaker_url)
+        for round in tab_data:
             records.append((uid, 
                             date,
-                            p.get(round["round"], "ABS").upper(),
+                            round["position"].upper(),
                             round["points"],
-                            sp.get(round["round"], 0)))
+                            round["speaks"],
+                            round["info_slide"],
+                            round["motion"]))
     except Exception as e:
-        raise RuntimeError("error processing participant data")
+        raise RuntimeError("error fetching participant data")
     cur = con.cursor()
     try:
-        cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks) VALUES (?, ?, ?, ?, ?)", records)
+        cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)
         con.commit()
     except Exception as e:
         raise sqlite3.DatabaseError("error writing to DB")
