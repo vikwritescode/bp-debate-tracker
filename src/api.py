@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS debates (
     position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'ABS')),
     points INTEGER NOT NULL CHECK(points >= 0 AND points <= 3),
     speaks INTEGER NOT NULL,
+    infoslide TEXT NOT NULL,
+    motion TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             """)
 con.commit()

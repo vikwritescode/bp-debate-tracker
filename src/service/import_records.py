@@ -38,12 +38,14 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                             date,
                             round["position"].upper(),
                             round["points"],
-                            round["speaks"]))
+                            round["speaks"],
+                            round["info_slide"],
+                            round["motion"]))
     except Exception as e:
         raise RuntimeError("error fetching participant data")
     cur = con.cursor()
     try:
-        cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks) VALUES (?, ?, ?, ?, ?)", records)
+        cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)
         con.commit()
     except Exception as e:
         raise sqlite3.DatabaseError("error writing to DB")
