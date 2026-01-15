@@ -15,7 +15,13 @@ This, at the moment, also allows for records to be made through simply a URL and
 - Add Individual Records
 - Delete Records
 - View Motions and Infoslides
+- Automatic Categorisation of Debates
 
-## Coming Soon
-- Display Average and Standard Deviation of Speaks
-- Automatic Categorisation of Motions
+## Planned
+- Improved Model for Speaker Categories
+- Some level of docker support for easy deployment
+
+## Instructions
+TODO
+- Ollama must be running in the background with `ollama serve`
+
