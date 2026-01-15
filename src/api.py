@@ -31,16 +31,56 @@ CREATE TABLE IF NOT EXISTS debates (
     motion TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             """)
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS categories (
+    debate_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN (
+        'Economics',
+        'International Relations',
+        'Africa',
+        'Art',
+        'Asia',
+        'Children',
+        'Cities',
+        'Criminal Justice',
+        'Culture',
+        'Feminism',
+        'Latin America',
+        'Law',
+        'LGBTQ+',
+        'Media',
+        'Medical',
+        'Middle East',
+        'Military',
+        'Minority Communities',
+        'Philosophy',
+        'Politics',
+        'Religion',
+        'Romance/Sexuality',
+        'Science/Technology',
+        'Social Justice',
+        'Sports'
+    )),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+""")
+
 con.commit()
 con.close()
 # TODO: use a faster approach
 
 def get_db():
+    """
+    function to pass database connections to the service layer,
+    closing even if errors occur
+    """
     conn = sqlite3.connect('debates.db')
     try:
         yield conn
     finally:
-        conn.close()  # Always close, even if errors happen
+        conn.close() 
 
 load_dotenv()
 if not firebase_admin._apps:

@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
     """
@@ -13,9 +14,27 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
     """
     try:
         cur = db_conn.cursor()
-        cur.execute("SELECT * FROM debates WHERE user_id = ?", (uid,))
+        cur.execute("""
+                SELECT d.id, d.user_id, d.date, d.position, d.points, d.speaks, d.infoslide, d.motion, json_group_array(c.category) AS categories
+                FROM debates d
+                LEFT JOIN categories c ON d.id = c.debate_id
+                WHERE d.user_id = ?
+                GROUP BY d.id
+                ORDER BY d.date DESC, d.id;
+                    """, (uid,))
         x = cur.fetchall()
-        return x
+        r = [
+            {"id": i[0],
+             "uid": i[1],
+             "date": i[2],
+             "position": i[3],
+             "points": i[4],
+             "speaks": i[5],
+             "infoslide": i[6],
+             "motion": i[7],
+             "categories": json.loads(i[8])
+        } for i in x]
+        return r
     except sqlite3.Error as e:
         raise RuntimeError("Database Issue")
     
