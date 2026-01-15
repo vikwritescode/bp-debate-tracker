@@ -9,6 +9,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     
     resp = requests.get(f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds")
     round_stands = resp.json()
+    print("(1) gotten round standings")
     
     results = dict()
     # get our specific entry in round_stands
@@ -27,6 +28,8 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         # getting data from round URL
         round_request_response = requests.get(round["round"])
         round_data = round_request_response.json()
+        print("(2) gotten round data")
+        
         round_motion_set = round_data["motions"]
         if len(round_motion_set) > 0:
             result["info_slide"] = round_motion_set[0]["info_slide_plain"]
@@ -36,6 +39,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         # get positions from motion draw
         pairing_request_response = requests.get(round_data["_links"]["pairing"])
         pairings_data = pairing_request_response.json()
+        print("(3) gotten pairing data")
         for room in pairings_data:
             for team in room["teams"]:
                 if team["team"] == team_url:
@@ -46,6 +50,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     # get speaks and append to our results
     speak_standings_response = requests.get(f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds")
     speak_standings = speak_standings_response.json()
+    print("(4) gotten speaks data")
     # get our speaker
     relevant = next((speaker["rounds"] for speaker in speak_standings if speaker["speaker"] == speaker_url), [])
     for round in relevant:

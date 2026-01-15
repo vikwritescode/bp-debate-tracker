@@ -1,4 +1,5 @@
 from utils import get_data
+from ai import get_cats
 
 import requests
 import sqlite3
@@ -33,19 +34,28 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     records = []
     try:
         tab_data = get_data(tab_url, slug, speaker_url)
+        cur = con.cursor()
         for round in tab_data:
-            records.append((uid, 
+            rcd = (uid, 
                             date,
                             round["position"].upper(),
                             round["points"],
                             round["speaks"],
                             round["info_slide"],
-                            round["motion"]))
+                            round["motion"])
+            print(f"FOR {round["motion"]}")
+            cats = get_cats(round["info_slide"], round["motion"])
+            print(cats)
+            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", rcd)
+            p_key = cur.lastrowid
+            if p_key is None:
+                print("oopsie woopsie")
+            tuples = [(p_key, c) for c in cats]
+            cur.executemany("INSERT INTO categories (debate_id, category) VALUES (?, ?)", tuples)
     except Exception as e:
         raise RuntimeError("error fetching participant data")
-    cur = con.cursor()
     try:
-        cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)
+        # cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)
         con.commit()
     except Exception as e:
         raise sqlite3.DatabaseError("error writing to DB")
