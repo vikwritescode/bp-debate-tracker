@@ -49,9 +49,9 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
             cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", rcd)
             p_key = cur.lastrowid
             if p_key is None:
-                print("oopsie woopsie")
-            tuples = [(p_key, c) for c in cats]
-            cur.executemany("INSERT INTO categories (debate_id, category) VALUES (?, ?)", tuples)
+                raise RuntimeError("did not insert record")
+            tuples = [(p_key, uid, c) for c in cats]
+            cur.executemany("INSERT INTO categories (debate_id, user_id, category) VALUES (?, ?, ?)", tuples)
     except Exception as e:
         raise RuntimeError("error fetching participant data")
     try:

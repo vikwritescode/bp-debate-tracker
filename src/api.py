@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS debates (
 cur.execute("""
 CREATE TABLE IF NOT EXISTS categories (
     debate_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
     category TEXT NOT NULL CHECK(category IN (
         'Economics',
         'International Relations',

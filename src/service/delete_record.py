@@ -21,7 +21,7 @@ def delete_record(uid: str, debate_id: int, db: sqlite3.Connection) -> dict:
         if len(recs) == 0:
             raise NotFoundError("Record Not Found")
         cur.execute("DELETE FROM debates WHERE user_id=? and id=?", (uid, debate_id))
-        cur.execute("DELETE FROM categories where id=?", (debate_id))
+        cur.execute("DELETE FROM categories where id=?", (debate_id, ))
         db.commit()
         return {"message": "record deleted successfully"}
     except NotFoundError as e:
