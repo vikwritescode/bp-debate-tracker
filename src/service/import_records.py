@@ -1,6 +1,6 @@
 from utils import get_data
-from ai import get_cats
-
+from ai import classify
+from fastapi import Request
 import requests
 import sqlite3
 from datetime import datetime
@@ -13,7 +13,7 @@ def validate_date_format(date_string: str):
     except ValueError:
         raise ValueError("Invalid Date Format!")
         
-def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: str, con: sqlite3.Connection):
+def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: str, con: sqlite3.Connection, request: Request):
     """
     creates debate records based on a speaker at a tournament
     
@@ -29,6 +29,8 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     :type date: str
     :param con: sqlite3 connection
     :type con: sqlite3.Connection
+    :param request: request
+    :type request: Request
     """
     validate_date_format(date)
     records = []
@@ -44,7 +46,10 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                             round["info_slide"],
                             round["motion"])
             print(f"FOR {round["motion"]}")
-            cats = get_cats(round["info_slide"], round["motion"])
+            try:
+                cats = classify(round["info_slide"], round["motion"], request)
+            except Exception as e:
+                print("whoops", str(e))
             print(cats)
             cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", rcd)
             p_key = cur.lastrowid
