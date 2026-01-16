@@ -1,10 +1,11 @@
 import requests
-def get_speaker(link :str, slug: str, name: str) -> list:
+from utils import correct_url
+def get_speaker(url :str, slug: str, name: str) -> list:
     """
     get speakers which at least partially match a string
     
-    :param link: tab URL
-    :type link: str
+    :param url: tab URL
+    :type url: str
     :param slug: tournament slug
     :type slug: str
     :param name: speaker name
@@ -13,6 +14,7 @@ def get_speaker(link :str, slug: str, name: str) -> list:
     :rtype: list
     """
     try:
+        link = correct_url(url)
         response = requests.get(f"{link}/api/v1/tournaments/{slug}/speakers")
     except requests.exceptions.RequestException as e:
         raise ValueError("Could not make a request to URL. Double check.")
