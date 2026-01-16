@@ -1,6 +1,6 @@
 from utils import *
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from firebase_admin import credentials, auth
@@ -13,10 +13,15 @@ from auth import get_current_user
 import service
 
 from models import *
+import joblib
+
+from contextlib import asynccontextmanager
 
 
 con = sqlite3.connect("debates.db")
 cur = con.cursor()
+
+
 
 # create us a table for debates if not already there
 cur.execute("""
@@ -69,7 +74,6 @@ CREATE TABLE IF NOT EXISTS categories (
 
 con.commit()
 con.close()
-# TODO: use a faster approach
 
 def get_db():
     """
@@ -87,7 +91,20 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(os.getenv("SERVICE_ACCT_KEY"))
     firebase_admin.initialize_app(cred)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: load model
+    global model, mlb, clf
+    model = joblib.load("sentence_transformer.pkl")
+    mlb = joblib.load("multilabel_binarizer.pkl")
+    clf = joblib.load("classifier.pkl")
+
+    app.state.model = model
+    app.state.mlb = mlb
+    app.state.clf = clf
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,6 +113,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# global variables for the trained model being loaded in
+model = None
+mlb = None
+clf = None
 
 @app.get("/api")
 def root(user: dict = Depends(get_current_user)):
@@ -178,7 +200,7 @@ def api_get_names(url: str, slug: str, speaker: str, user: dict = Depends(get_cu
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @app.post("/api/import")
-def api_import_from_url(tourn_data: TournamentImportModel, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+def api_import_from_url(tourn_data: TournamentImportModel, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
     """
     Docstring for api_import_from_url
     
@@ -190,7 +212,14 @@ def api_import_from_url(tourn_data: TournamentImportModel, user: dict = Depends(
     :type db: sqlite3.Connection
     """
     try:
-        return service.import_records(user["uid"], tourn_data.url, tourn_data.slug, tourn_data.speaker, tourn_data.date, db)
+        return service.import_records(
+            user["uid"],
+            tourn_data.url,
+            tourn_data.slug,
+            tourn_data.speaker,
+            tourn_data.date,
+            db, 
+            request)
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
