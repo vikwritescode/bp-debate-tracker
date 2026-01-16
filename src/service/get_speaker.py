@@ -1,10 +1,11 @@
 import requests
-def get_speaker(link :str, slug: str, name: str) -> list:
+from utils import correct_url
+def get_speaker(url :str, slug: str, name: str) -> list:
     """
     get speakers which at least partially match a string
     
-    :param link: tab URL
-    :type link: str
+    :param url: tab URL
+    :type url: str
     :param slug: tournament slug
     :type slug: str
     :param name: speaker name
@@ -13,6 +14,9 @@ def get_speaker(link :str, slug: str, name: str) -> list:
     :rtype: list
     """
     try:
+        link = correct_url(url)
+        print(url)
+        print(link)
         response = requests.get(f"{link}/api/v1/tournaments/{slug}/speakers")
     except requests.exceptions.RequestException as e:
         raise ValueError("Could not make a request to URL. Double check.")
@@ -20,5 +24,8 @@ def get_speaker(link :str, slug: str, name: str) -> list:
         raise RuntimeError(f"[{response.status_code}] unwanted response: {response.reason}")
     data = response.json()
     # filter out unnecessary entries
-    relevant = [{"name": entry["name"], "team": entry["team"], "url": entry["url"]} for entry in data if ((not entry["anonymous"]) and (name in entry["name"]))]
+    relevant = [{"name": entry["name"], "team": entry["team"], "url": entry["url"]} 
+                for entry in data 
+                if not entry["anonymous"] 
+                and name.lower() in entry["name"].lower()]
     return relevant

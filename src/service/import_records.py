@@ -1,4 +1,4 @@
-from utils import get_data
+from utils import get_data, correct_url
 from ai import classify
 from fastapi import Request
 import requests
@@ -35,7 +35,7 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     validate_date_format(date)
     records = []
     try:
-        tab_data = get_data(tab_url, slug, speaker_url)
+        tab_data = get_data(correct_url(tab_url), slug, speaker_url)
         cur = con.cursor()
         for round in tab_data:
             rcd = (uid, 

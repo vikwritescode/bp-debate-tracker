@@ -1,5 +1,6 @@
 import requests
 from models import SlugRef
+from utils import correct_url
 def get_tournaments(url: str) -> list:
     """
     Docstring for get_tournaments
@@ -9,9 +10,10 @@ def get_tournaments(url: str) -> list:
     :return: list of tournaments
     :rtype: list
     """
-    print(f"{url}/api/v1/tournaments")
+    fixed_url = correct_url(url)
+    print(f"{fixed_url}/api/v1/tournaments")
     try:
-        response = requests.get(f"{url}/api/v1/tournaments")
+        response = requests.get(f"{fixed_url}/api/v1/tournaments")
     except requests.exceptions.RequestException as e:
         raise RuntimeError(f"Failed to make request.")
     if response.status_code != 200:
