@@ -20,24 +20,40 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
             return await resp.json()
     
     async def get_pairings(urls):
+        """
+        Get pairings simultaneously
+        
+        :param urls: list of URL pairings
+        """
         async with aiohttp.ClientSession() as session:
             tasks = {u: fetch(session, u) for u in urls}
             results = await asyncio.gather(*tasks.values())
             data_map = dict(zip(tasks.keys(), results))
             return data_map
     
-    
+    async def get_standings(tab_url, slug):
+        """
+        Get both speaker and team standings simultaneously
+        
+        :param tab_url: the tab URL
+        :param slug: tournament slug
+        """
+        async with aiohttp.ClientSession() as session:
+            tasks = [fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds"),
+                     fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds")
+                     ]
+            results = await asyncio.gather(*tasks)
+            return results
     
     s_r = requests.get(speaker_url)
     s = s_r.json()
     
     team_url = s["team"]
     
-    speak_standings_response = requests.get(f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds")
-    speak_standings = speak_standings_response.json()
-    
-    resp = requests.get(f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds")
-    round_stands = resp.json()
+    # get our data concurrently for everything except pairings
+    stand = asyncio.run(get_standings(tab_url, slug))
+    speak_standings = stand[0]
+    round_stands = stand[1]
     
     print("(1) gotten round standings")
     
