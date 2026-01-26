@@ -62,9 +62,12 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     team_round_wise = next(team for team in round_stands if team["team"] == team_url)
     
     # fetch all rounds concurrently
-    pairings_urls = [r["round"] for r in team_round_wise["rounds"]]
-    pairings_jsons = asyncio.run(get_pairings(pairings_urls))
+    rounds_urls = [r["round"] for r in team_round_wise["rounds"]]
+    rounds_jsons = asyncio.run(get_pairings(rounds_urls))
     
+    # fetch all pairings concurrently
+    pairings_urls = [r["_links"]["pairing"] for r in rounds_jsons.values()]
+    pairings_jsons = asyncio.run(get_pairings(pairings_urls))
     
     # processing for each round
     for round in team_round_wise["rounds"]:
@@ -79,7 +82,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         result["speaks"] = 0 # default, if not replaced by round
         
         # getting data from round URL (already fetched tho)
-        round_data = pairings_jsons[round["round"]]
+        round_data = rounds_jsons[round["round"]]
         print("(2) gotten round data")
         
         round_motion_set = round_data["motions"]
@@ -89,8 +92,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         
         
         # get positions from motion draw
-        pairing_request_response = requests.get(round_data["_links"]["pairing"])
-        pairings_data = pairing_request_response.json()
+        pairings_data = pairings_jsons.get(round_data["_links"]["pairing"])
         print("(3) gotten pairing data")
         for room in pairings_data:
             for team in room["teams"]:
