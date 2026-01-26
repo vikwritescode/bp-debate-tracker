@@ -54,7 +54,6 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     stand = asyncio.run(get_standings(tab_url, slug))
     speak_standings = stand[0]
     round_stands = stand[1]
-    
     print("(1) gotten round standings")
     
     results = dict()
