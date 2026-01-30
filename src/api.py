@@ -37,6 +37,13 @@ CREATE TABLE IF NOT EXISTS debates (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             """)
 
+# attempt to add this column, should allow migration from older values
+try:
+    cur.execute("ALTER TABLE debates ADD COLUMN tournament_id INTEGER REFERENCES Tournaments(tournament_id);")
+except sqlite3.OperationalError as e:
+    if "duplicate column name: tournament_id" not in str(e):
+        raise
+
 cur.execute("""
 CREATE TABLE IF NOT EXISTS categories (
     debate_id INTEGER NOT NULL,
@@ -104,6 +111,15 @@ CREATE TABLE IF NOT EXISTS categories (
         'Trade'
     )),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+""")
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS tournaments (
+    tournament_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    date DATE NOT NULL
 );
 """)
 

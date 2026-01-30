@@ -40,7 +40,8 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         """
         async with aiohttp.ClientSession() as session:
             tasks = [fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds"),
-                     fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds")
+                     fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds"),
+                     fetch(session, f"{tab_url}/api/v1/tournaments/{slug}")
                      ]
             results = await asyncio.gather(*tasks)
             return results
@@ -54,6 +55,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     stand = asyncio.run(get_standings(tab_url, slug))
     speak_standings = stand[0]
     round_stands = stand[1]
+    tourney_name = stand[2]["short_name"]
     print("(1) gotten round standings")
     
     results = dict()
@@ -110,7 +112,11 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
             speaker_score = speeches[0]["score"]
             results[round["round"]]["speaks"] = speaker_score
     
-    return list(results.values())
+    return {
+        "name": tourney_name,
+        "results": list(results.values())
+    }
+
     
         
            

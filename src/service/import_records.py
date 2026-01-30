@@ -37,21 +37,28 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     try:
         tab_data = get_data(correct_url(tab_url), slug, speaker_url)
         cur = con.cursor()
-        for round in tab_data:
+        # create and write the tournament
+        tourn_tuple = (date, uid, tab_data["name"])
+        cur.execute("INSERT INTO tournaments (date, user_id, name) VALUES (?, ?, ?)", tourn_tuple)
+        t_id = cur.lastrowid
+        if t_id is None:
+            raise RuntimeError("failed to create tournament record")
+        for round in tab_data["results"]:
             rcd = (uid, 
                             date,
                             round["position"].upper(),
                             round["points"],
                             round["speaks"],
                             round["info_slide"],
-                            round["motion"])
+                            round["motion"],
+                            t_id)
             print(f"FOR {round["motion"]}")
             try:
                 cats = classify(round["info_slide"], round["motion"], request)
             except Exception as e:
                 print("whoops", str(e))
             print(cats)
-            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", rcd)
+            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rcd)
             p_key = cur.lastrowid
             if p_key is None:
                 raise RuntimeError("did not insert record")
