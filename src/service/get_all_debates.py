@@ -15,7 +15,7 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
     try:
         cur = db_conn.cursor()
         cur.execute("""
-                SELECT d.id, d.user_id, d.date, d.position, d.points, d.speaks, d.infoslide, d.motion, json_group_array(c.category) AS categories, t.name AS tournament_name
+                SELECT d.id, d.user_id, t.date, d.position, d.points, d.speaks, d.infoslide, d.motion, json_group_array(c.category) AS categories, t.name AS tournament_name
                 FROM debates d
                 LEFT JOIN categories c ON d.id = c.debate_id
                 LEFT JOIN tournaments t on t.tournament_id = d.tournament_id
