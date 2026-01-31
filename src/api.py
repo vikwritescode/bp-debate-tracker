@@ -285,7 +285,7 @@ def api_get_tournaments(user: dict = Depends(get_current_user), db: sqlite3.Conn
     :type db: sqlite3.Connection
     """
     try:
-        return service.get_user_tournaments(user.uid, db)
+        return service.get_user_tournaments(user["uid"], db)
     except Exception as e:
         raise
     

@@ -15,13 +15,14 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
     try:
         cur = db_conn.cursor()
         cur.execute("""
-                SELECT tournament_id, name from tournaments
+                SELECT tournament_id, name, date from tournaments
                 WHERE user_id = ?
                     """, (uid,))
         x = cur.fetchall()
         r = [
             {"id": i[0],
-             "name": i[1]
+             "name": i[1],
+             "date": i[2]
              }
             for i in x]
         return r
