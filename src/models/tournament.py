@@ -15,3 +15,7 @@ class TournamentImportModel(BaseModel):
     slug: str
     speaker: str
     date: str
+
+class TournamentCreate(BaseModel):
+    name: str
+    date: str

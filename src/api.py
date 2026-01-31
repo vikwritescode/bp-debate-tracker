@@ -273,7 +273,40 @@ def api_import_from_url(tourn_data: TournamentImportModel, request: Request, use
             request)
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@app.get("/api/usertournaments")
+def api_get_tournaments(user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Gets all tournament records associated with a user.
     
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.get_user_tournaments(user.uid, db)
+    except Exception as e:
+        raise
+    
+@app.post("/api/usertournaments/create")
+def api_create_tournaments(tourn: TournamentCreate, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Gets all tournament records associated with a user.
+    :param tourn: tournament to create
+    :type tourn: TournamentCreate
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        attempt = service.create_user_tournament(tourn, user["uid"], db)
+        return {"id": attempt, "message": "Successfully inserted record"}
+    except RuntimeError as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, e)
+  
 @app.delete("/api/delete/{debate_id}")
 def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
     """
