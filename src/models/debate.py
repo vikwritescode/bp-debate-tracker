@@ -9,6 +9,7 @@ class DebateCreate(BaseModel):
     speaks: int = Field(ge=0, le=100)
     motion: str
     infoslide: str
+    tournament: int | None = None 
 
 class Category(str, Enum):
     econ = "Economics"
