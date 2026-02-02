@@ -1,4 +1,4 @@
-# Derivative : An Open Source BP Debate Tracker
+# Derivative: An Open Source BP Debate Tracker
 
 Currently live on [derivative.lol](https://derivative.lol). This is the backend of a [tracker](https://github.com/vikwritescode/bp-debate-tracker) designed for British Parliamentary debating, allowing users record and import results, view their history, and access summary statistics.
 
@@ -23,7 +23,7 @@ Built with Python, FastAPI, Pydantic, pandas, Uvicorn, scikit-learn, and Firebas
 git clone https://github.com/vikwritescode/bp-debate-tracker
 cd bp-debate-tracker
 ```
-2. Initialise a python virtual environment
+2. Initialise a Python virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -35,18 +35,18 @@ pip install -r requirements.txt
     - under project settings, go to the service accounts tab
     - generate a new private key and rename it to `ServiceAccountKey.json`
     - place it in the /src folder
-    - add the path to `ServiceAccountKey` in your `.env`
+    - add the path to `ServiceAccountKey` in your `.env`:
     ```bash
     echo "SERVICE_ACCT_KEY='./serviceAccountKey.json'" > .env
     ```
 
-4. Train Classifier
+4. Train classifier
     - a set of motions and their associated categories are required
     - modify the file in `ai/train_model.py` to extract this data accordingly
     - run `train_model.py`
     - this should generate three files in /src: `classifier.pkl`, `multilabel_binarizer.pkl`, and `transformer.pkl`
 
-5. Enter /src and run `api.py` 
+5. Enter /src and run `api.py` :
 ```bash
 cd src
 python3 api.py
