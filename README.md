@@ -23,29 +23,31 @@ Built with Python, FastAPI, Pydantic, pandas, Uvicorn, scikit-learn, and Firebas
 git clone https://github.com/vikwritescode/bp-debate-tracker
 cd bp-debate-tracker
 ```
-2. Create and start a python virtual environment
+2. Initialise a python virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-3. Configure Firebase Login
-    - head to firebase console
-    - create a new project, enable authentication
-    - download ServiceAccountKey.json
-    - add ServiceAccountKey.json to the root of the src folder
-    - add the path to ServiceAccountKey in your .env
+3. Configure Firebase
+    - head to Firebase console
+    - create a new project, enable Authentication
+    - under project settings, go to the service accounts tab
+    - generate a new private key and rename it to `ServiceAccountKey.json`
+    - place it in the /src folder
+    - add the path to `ServiceAccountKey` in your `.env`
     ```bash
-    echo "SERVICE_ACCT_KEY = ./serviceAccountKey.json" > .env
+    echo "SERVICE_ACCT_KEY='./serviceAccountKey.json'" > .env
     ```
 
 4. Train Classifier
-    - You will need a set of motions and their associated categories
+    - a set of motions and their associated categories are required
     - modify the file in `ai/train_model.py` to extract this data accordingly
-    - run the file in train_model.py.
-    - This should, ideally, generate `classifier.pkl`, `multilabel_binarizer.pkl`, and `transformer.pkl`. Ensure these files are in the root of the `src` folder.
+    - run `train_model.py`
+    - this should generate three files in /src: `classifier.pkl`, `multilabel_binarizer.pkl`, and `transformer.pkl`
 
-5. Enter and run `api.py` 
+5. Enter /src and run `api.py` 
 ```bash
-python3 src/api.py
+cd src
+python3 api.py
 ```
