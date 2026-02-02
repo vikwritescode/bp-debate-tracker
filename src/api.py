@@ -250,6 +250,20 @@ def api_get_names(url: str, slug: str, speaker: str, user: dict = Depends(get_cu
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+@app.get("/api/startdate")
+def api_get_startdate(url: str, slug: str, user: dict = Depends(get_current_user)):
+    """
+    get start date for tournament
+    
+    :param url: tab URL
+    :type url: str
+    :param slug: tournament slug
+    :type slug: str
+    :param user: firebase user
+    :type user: dict
+    """
+    return service.get_start_date(url, slug)
+
 @app.post("/api/import")
 def api_import_from_url(tourn_data: TournamentImportModel, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
     """
