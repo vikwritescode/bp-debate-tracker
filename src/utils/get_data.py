@@ -81,6 +81,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         result["info_slide"] = ""
         result["motion"] = "blank..?"
         result["speaks"] = 0 # default, if not replaced by round
+        result["spoke"] = False
         
         # getting data from round URL (already fetched tho)
         round_data = rounds_jsons[round["round"]]
@@ -108,9 +109,11 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     relevant = next((speaker["rounds"] for speaker in speak_standings if speaker["speaker"] == speaker_url), [])
     for round in relevant:
         speeches = round["speeches"]
+        
         if len(speeches) > 0:
-            speaker_score = speeches[0]["score"]
+            speaker_score = max(speeches, key=lambda x: x["score"])["score"]
             results[round["round"]]["speaks"] = speaker_score
+            results[round["round"]]["spoke"] = True
     
     return {
         "name": tourney_name,
