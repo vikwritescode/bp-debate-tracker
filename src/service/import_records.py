@@ -44,6 +44,12 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         if t_id is None:
             raise RuntimeError("failed to create tournament record")
         for round in tab_data["results"]:
+            
+            # ignore rounds where people did not speak
+            if not round["spoke"]:
+                continue
+            
+            # make tuple for putting in db
             rcd = (uid, 
                             date,
                             round["position"].upper(),
