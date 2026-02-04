@@ -339,7 +339,27 @@ def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except NotFoundError as e:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User Record Not Found")
-        
+
+@app.delete("/api/usertournaments/delete/{tournament_id}")
+def api_delete_tournament(tournament_id: int, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Delete a tournament and all associated records with this tournament.
+    
+    :param tournament_id: tournament ID
+    :type tournament_id: int
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.delete_tournament(tournament_id, user["uid"], db)
+    except NotFoundError as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
     
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
