@@ -228,6 +228,8 @@ def api_get_tournaments(url: str, user: dict = Depends(get_current_user)):
     """
     try:
         return service.get_tournaments(url)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e))
 
@@ -247,6 +249,8 @@ def api_get_names(url: str, slug: str, speaker: str, user: dict = Depends(get_cu
     """
     try:
         return service.get_speaker(url, slug, speaker)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -262,7 +266,10 @@ def api_get_startdate(url: str, slug: str, user: dict = Depends(get_current_user
     :param user: firebase user
     :type user: dict
     """
-    return service.get_start_date(url, slug)
+    try:
+        return service.get_start_date(url, slug)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, detail="tab auth")
 
 @app.post("/api/import")
 def api_import_from_url(tourn_data: TournamentImportModel, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):

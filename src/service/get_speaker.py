@@ -1,4 +1,5 @@
 import requests
+from models import TabAuthError
 from utils import correct_url
 def get_speaker(url :str, slug: str, name: str) -> list:
     """
@@ -19,6 +20,8 @@ def get_speaker(url :str, slug: str, name: str) -> list:
         print(link)
         response = requests.get(f"{link}/api/v1/tournaments/{slug}/speakers")
     except requests.exceptions.RequestException as e:
+        if e.response.status_code == 401:
+            raise TabAuthError
         raise ValueError("Could not make a request to URL. Double check.")
     if response.status_code != 200:
         raise RuntimeError(f"[{response.status_code}] unwanted response: {response.reason}")
