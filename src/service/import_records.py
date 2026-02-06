@@ -1,9 +1,9 @@
 from utils import get_data, correct_url
 from ai import classify
 from fastapi import Request
-import requests
 import sqlite3
 from datetime import datetime
+from models import TabAuthError, TabBrokenError
 
 def validate_date_format(date_string: str):
     """Validate YYYY-MM-DD format only"""
@@ -70,6 +70,9 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                 raise RuntimeError("did not insert record")
             tuples = [(p_key, uid, c) for c in cats]
             cur.executemany("INSERT INTO categories (debate_id, user_id, category) VALUES (?, ?, ?)", tuples)
+    except (TabAuthError, TabBrokenError) as e:
+        print("raising...")
+        raise
     except Exception as e:
         raise RuntimeError("error fetching participant data")
     try:

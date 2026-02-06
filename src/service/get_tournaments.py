@@ -1,5 +1,5 @@
 import requests
-from models import SlugRef
+from models import SlugRef, TabAuthError
 from utils import correct_url
 def get_tournaments(url: str) -> list:
     """
@@ -14,10 +14,12 @@ def get_tournaments(url: str) -> list:
     print(f"{fixed_url}/api/v1/tournaments")
     try:
         response = requests.get(f"{fixed_url}/api/v1/tournaments")
+        response.raise_for_status()
     except requests.exceptions.RequestException as e:
+        if e.response.status_code == 401:
+            raise TabAuthError
         raise RuntimeError(f"Failed to make request.")
-    if response.status_code != 200:
-        raise RuntimeError(f"[{response.status_code}] unwanted response from tab: {response.reason}")
+
     
     data = response.json()
     return [SlugRef(name=comp["name"], slug=comp["slug"]) for comp in data]

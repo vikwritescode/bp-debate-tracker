@@ -1,6 +1,7 @@
 import requests
 import asyncio
 import aiohttp
+from models import TabAuthError, TabBrokenError
 
 def get_data(tab_url: str, slug: str, speaker_url: str):
     """
@@ -46,29 +47,44 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
             results = await asyncio.gather(*tasks)
             return results
     
-    s_r = requests.get(speaker_url)
-    s = s_r.json()
+
     
-    team_url = s["team"]
+    try:
+        s_r = requests.get(speaker_url)
+        s_r.raise_for_status()
+        
+        s = s_r.json()
+        team_url = s["team"]
+        
+        # get our data concurrently for everything except pairings
+        stand = asyncio.run(get_standings(tab_url, slug))
+        speak_standings = stand[0]
+        round_stands = stand[1]
+        tourney_name = stand[2]["short_name"]
+        
+        results = dict()
+        # get our specific entry in round_stands
+        team_round_wise = next(team for team in round_stands if team["team"] == team_url)
     
-    # get our data concurrently for everything except pairings
-    stand = asyncio.run(get_standings(tab_url, slug))
-    speak_standings = stand[0]
-    round_stands = stand[1]
-    tourney_name = stand[2]["short_name"]
-    print("(1) gotten round standings")
-    
-    results = dict()
-    # get our specific entry in round_stands
-    team_round_wise = next(team for team in round_stands if team["team"] == team_url)
-    
-    # fetch all rounds concurrently
-    rounds_urls = [r["round"] for r in team_round_wise["rounds"]]
-    rounds_jsons = asyncio.run(get_pairings(rounds_urls))
-    
-    # fetch all pairings concurrently
-    pairings_urls = [r["_links"]["pairing"] for r in rounds_jsons.values()]
-    pairings_jsons = asyncio.run(get_pairings(pairings_urls))
+        # fetch all rounds concurrently
+        rounds_urls = [r["round"] for r in team_round_wise["rounds"]]
+        rounds_jsons = asyncio.run(get_pairings(rounds_urls))
+        
+        # fetch all pairings concurrently
+        pairings_urls = [r["_links"]["pairing"] for r in rounds_jsons.values()]
+        pairings_jsons = asyncio.run(get_pairings(pairings_urls))
+    except (requests.exceptions.HTTPError, aiohttp.ClientResponseError) as e:
+        # status location differs with async and sync
+        status = getattr(e, 'status', None) or (e.response.status_code if hasattr(e, 'response') else None)
+        
+        if status == 401:
+            raise TabAuthError
+        else:
+            print(status)
+            print("raising..")
+            raise TabBrokenError
+        
+        
     
     # processing for each round
     for round in team_round_wise["rounds"]:
