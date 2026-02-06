@@ -6,3 +6,6 @@ class TabAuthError(Exception):
 
 class TabBrokenError(Exception):
     pass
+
+class StartNotFoundError(Exception):
+    pass
