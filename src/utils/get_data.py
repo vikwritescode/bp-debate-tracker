@@ -1,7 +1,7 @@
 import requests
 import asyncio
 import aiohttp
-from models import TabAuthError
+from models import TabAuthError, TabBrokenError
 
 def get_data(tab_url: str, slug: str, speaker_url: str):
     """
@@ -80,7 +80,9 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         if status == 401:
             raise TabAuthError
         else:
-            raise
+            print(status)
+            print("raising..")
+            raise TabBrokenError
         
         
     

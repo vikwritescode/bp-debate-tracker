@@ -285,6 +285,10 @@ def api_import_from_url(tourn_data: TournamentImportModel, request: Request, use
             tourn_data.date,
             db, 
             request)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
+    except TabBrokenError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab broken")
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

@@ -3,3 +3,6 @@ class NotFoundError(Exception):
 
 class TabAuthError(Exception):
     pass
+
+class TabBrokenError(Exception):
+    pass
