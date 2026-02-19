@@ -38,11 +38,13 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         tab_data = get_data(correct_url(tab_url), slug, speaker_url)
         cur = con.cursor()
         # create and write the tournament
-        tourn_tuple = (date, uid, tab_data["name"])
-        cur.execute("INSERT INTO tournaments (date, user_id, name) VALUES (?, ?, ?)", tourn_tuple)
+        tourn_tuple = (date, uid, tab_data["name"], tab_data["speaker_rank"], tab_data["team_rank"], tab_data["rooms"])
+        cur.execute("INSERT INTO tournaments (date, user_id, name, speaker_standing, team_standing, rooms) VALUES (?, ?, ?, ?, ?, ? )", tourn_tuple)
         t_id = cur.lastrowid
         if t_id is None:
             raise RuntimeError("failed to create tournament record")
+        
+        print(f"{tab_data["team_rank"]} on team, {tab_data["speaker_rank"]} on speaker, {tab_data["rooms"]} rooms")
         for round in tab_data["results"]:
             
             # ignore rounds where people did not speak
@@ -58,12 +60,10 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                             round["info_slide"],
                             round["motion"],
                             t_id)
-            print(f"FOR {round["motion"]}")
             try:
                 cats = classify(round["info_slide"], round["motion"], request)
             except Exception as e:
                 print("whoops", str(e))
-            print(cats)
             cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rcd)
             p_key = cur.lastrowid
             if p_key is None:
