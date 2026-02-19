@@ -60,12 +60,10 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                             round["info_slide"],
                             round["motion"],
                             t_id)
-            print(f"FOR {round["motion"]}")
             try:
                 cats = classify(round["info_slide"], round["motion"], request)
             except Exception as e:
                 print("whoops", str(e))
-            print(cats)
             cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rcd)
             p_key = cur.lastrowid
             if p_key is None:
