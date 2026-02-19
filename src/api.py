@@ -119,7 +119,10 @@ CREATE TABLE IF NOT EXISTS tournaments (
     tournament_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     user_id TEXT NOT NULL,
-    date DATE NOT NULL
+    date DATE NOT NULL,
+    speaker_standing INTEGER NOT NULL default 0,
+    team_standing INTEGER NOT NULL default 0,
+    rooms INTEGER NOT NULL default 0
 );
 """)
 
