@@ -68,8 +68,14 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         team_standings = stand[3]
         actual_speak_standings = stand[4]
         
-        team_rank = next((x["rank"] for x in team_standings if utils.standardise_to_https(x["team"]) == utils.standardise_to_https(team_url)), 0)
-        speaker_rank = next((x["rank"] for x in actual_speak_standings if utils.standardise_to_https(x["speaker"]) == utils.standardise_to_https(speaker_url)), 0)
+        team_rank = next((x["rank"]
+                          for x in team_standings
+                          if x["team"] is not None
+                          and (utils.standardise_to_https(x["team"]) == utils.standardise_to_https(team_url))), 0)
+        speaker_rank = next((x["rank"]
+                          for x in actual_speak_standings
+                          if x["speaker"] is not None
+                          and (utils.standardise_to_https(x["speaker"]) == utils.standardise_to_https(speaker_url))), 0)
         
         results = dict()
         # get our specific entry in round_stands
