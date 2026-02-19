@@ -14,12 +14,9 @@ def classify(info_slide: str, motion: str, request: Request):
     :param request: request
     :type request: Request
     """
-    print("classify runs")  
     model = request.app.state.model
     mlb = request.app.state.mlb
     clf = request.app.state.clf
-    
-    print("model was gotten supposedly")
     # Encode text
     # This is the way I trained my model, but alter accordingly
     text = info_slide + motion
