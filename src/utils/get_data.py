@@ -1,6 +1,7 @@
 import requests
 import asyncio
 import aiohttp
+import utils
 from models import TabAuthError, TabBrokenError
 
 def get_data(tab_url: str, slug: str, speaker_url: str):
@@ -40,9 +41,12 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         :param slug: tournament slug
         """
         async with aiohttp.ClientSession() as session:
-            tasks = [fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds"),
-                     fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds"),
-                     fetch(session, f"{tab_url}/api/v1/tournaments/{slug}")
+            tasks = [
+                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings/rounds"),
+                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings/rounds"),
+                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}"),
+                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings"),
+                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings"),
                      ]
             results = await asyncio.gather(*tasks)
             return results
@@ -61,6 +65,11 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         speak_standings = stand[0]
         round_stands = stand[1]
         tourney_name = stand[2]["short_name"]
+        team_standings = stand[3]
+        actual_speak_standings = stand[4]
+        
+        team_rank = next((x["rank"] for x in team_standings if utils.standardise_to_https(x["team"]) == utils.standardise_to_https(team_url)), 0)
+        speaker_rank = next((x["rank"] for x in actual_speak_standings if utils.standardise_to_https(x["speaker"]) == utils.standardise_to_https(speaker_url)), 0)
         
         results = dict()
         # get our specific entry in round_stands
@@ -73,6 +82,13 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         # fetch all pairings concurrently
         pairings_urls = [r["_links"]["pairing"] for r in rounds_jsons.values()]
         pairings_jsons = asyncio.run(get_pairings(pairings_urls))
+        
+        # save number of rooms
+        if len(pairings_jsons.values()) > 0:
+            rooms = len(max(pairings_jsons.values(), key=len))
+        else:
+            rooms = 0
+            
     except (requests.exceptions.HTTPError, aiohttp.ClientResponseError) as e:
         # status location differs with async and sync
         status = getattr(e, 'status', None) or (e.response.status_code if hasattr(e, 'response') else None)
@@ -80,11 +96,10 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         if status == 401:
             raise TabAuthError
         else:
-            print(status)
-            print("raising..")
             raise TabBrokenError
-        
-        
+    
+    except Exception as e:
+        print(f"whoops: {str(e)}")   
     
     # processing for each round
     for round in team_round_wise["rounds"]:
@@ -133,6 +148,9 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
     
     return {
         "name": tourney_name,
+        "speaker_rank": speaker_rank,
+        "team_rank": team_rank,
+        "rooms": rooms,
         "results": list(results.values())
     }
 

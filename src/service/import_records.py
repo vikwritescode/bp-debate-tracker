@@ -43,6 +43,8 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
         t_id = cur.lastrowid
         if t_id is None:
             raise RuntimeError("failed to create tournament record")
+        
+        print(f"{tab_data["team_rank"]} on team, {tab_data["speaker_rank"]} on speaker, {tab_data["rooms"]} rooms")
         for round in tab_data["results"]:
             
             # ignore rounds where people did not speak
