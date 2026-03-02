@@ -47,6 +47,7 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
                 fetch(session, f"{tab_url}/api/v1/tournaments/{slug}"),
                 fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams/standings"),
                 fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/speakers/standings"),
+                fetch(session, f"{tab_url}/api/v1/tournaments/{slug}/teams"),
                      ]
             results = await asyncio.gather(*tasks)
             return results
@@ -67,7 +68,9 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         tourney_name = stand[2]["short_name"]
         team_standings = stand[3]
         actual_speak_standings = stand[4]
+        teams = stand[5]
         
+        # get team and speaker rank
         team_rank = next((x["rank"]
                           for x in team_standings
                           if x["team"] is not None
@@ -76,6 +79,11 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
                           for x in actual_speak_standings
                           if x["speaker"] is not None
                           and (utils.standardise_to_https(x["speaker"]) == utils.standardise_to_https(speaker_url))), 0)
+        
+        # get team object to find partner
+        team_obj = next((t for t in teams if utils.standardise_to_https(t["url"]) == utils.standardise_to_https(team_url)), None)
+        partner_name = next(utils.correct_name(s["name"]) for s in team_obj["speakers"] if utils.standardise_to_https(s["url"]) != utils.standardise_to_https(speaker_url))
+        
         
         results = dict()
         # get our specific entry in round_stands
@@ -157,9 +165,8 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         "speaker_rank": speaker_rank,
         "team_rank": team_rank,
         "rooms": rooms,
-        "results": list(results.values())
+        "results": list(results.values()),
+        "partner": partner_name
     }
-
-    
         
            

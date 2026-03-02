@@ -27,7 +27,7 @@ except sqlite3.OperationalError as e:
 # UPGRADE DATABASE TO TRACK PARTNER, NAME, URL, SLUG
 try:
     cur.execute("ALTER TABLE tournaments ADD COLUMN partner TEXT")
-    cur.execute("ALTER TABLE tournaments ADD COLUMN speaker_name TEXT")
+    cur.execute("ALTER TABLE tournaments ADD COLUMN speaker_url TEXT")
     cur.execute("ALTER TABLE tournaments ADD COLUMN tab_url TEXT")
     cur.execute("ALTER TABLE tournaments ADD COLUMN slug TEXT")
     

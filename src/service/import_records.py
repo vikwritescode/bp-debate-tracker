@@ -37,9 +37,22 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     try:
         tab_data = get_data(correct_url(tab_url), slug, speaker_url)
         cur = con.cursor()
+        
         # create and write the tournament
-        tourn_tuple = (date, uid, tab_data["name"], tab_data["speaker_rank"], tab_data["team_rank"], tab_data["rooms"])
-        cur.execute("INSERT INTO tournaments (date, user_id, name, speaker_standing, team_standing, rooms) VALUES (?, ?, ?, ?, ?, ? )", tourn_tuple)
+        tourn_tuple = (date,
+                       uid,
+                       tab_data["name"],
+                       tab_data["speaker_rank"],
+                       tab_data["team_rank"],
+                       tab_data["rooms"],
+                       correct_url(tab_url),
+                       slug,
+                       speaker_url,
+                       tab_data["partner"])
+        cur.execute("""INSERT INTO tournaments (
+            date, user_id, name, speaker_standing,
+            team_standing, rooms, tab_url, slug, speaker_url, partner) VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ? )""", tourn_tuple)
         t_id = cur.lastrowid
         if t_id is None:
             raise RuntimeError("failed to create tournament record")
