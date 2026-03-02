@@ -5,6 +5,8 @@ import sqlite3
 conn = sqlite3.connect("debates.db")
 cur = conn.cursor()
 
+
+# UPGRADE TO TRACK SIZE AND RANKING
 try:
     cur.execute("ALTER TABLE tournaments ADD COLUMN speaker_standing INTEGER NOT NULL DEFAULT 0")
     cur.execute("ALTER TABLE tournaments ADD COLUMN team_standing INTEGER NOT NULL DEFAULT 0")
@@ -15,7 +17,26 @@ try:
 except sqlite3.OperationalError as e:
     conn.rollback()
     if "duplicate column name" in str(e):
-        print("Columns already exist, skipping migration")
+        print("Columns already exist, skipping migration (a)")
+    
+    else:
+        conn.close()
+        raise
+
+    
+# UPGRADE DATABASE TO TRACK PARTNER, NAME, URL, SLUG
+try:
+    cur.execute("ALTER TABLE tournaments ADD COLUMN partner TEXT")
+    cur.execute("ALTER TABLE tournaments ADD COLUMN speaker_name TEXT")
+    cur.execute("ALTER TABLE tournaments ADD COLUMN tab_url TEXT")
+    cur.execute("ALTER TABLE tournaments ADD COLUMN slug TEXT")
+    
+    conn.commit()
+
+except sqlite3.OperationalError as e:
+    conn.rollback()
+    if "duplicate column name" in str(e):
+        print("Columns already exist, skipping migration (b)")
     
     else:
         raise
