@@ -122,7 +122,11 @@ CREATE TABLE IF NOT EXISTS tournaments (
     date DATE NOT NULL,
     speaker_standing INTEGER NOT NULL default 0,
     team_standing INTEGER NOT NULL default 0,
-    rooms INTEGER NOT NULL default 0
+    rooms INTEGER NOT NULL default 0,
+    partner TEXT,
+    tab_url TEXT,
+    speaker_url TEXT,
+    slug TEXT
 );
 """)
 

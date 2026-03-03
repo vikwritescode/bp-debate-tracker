@@ -17,7 +17,8 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
         cur.execute("""
                 SELECT d.id, d.user_id, t.date, d.position, d.points,
                 d.speaks, d.infoslide, d.motion, json_group_array(c.category) AS categories, 
-                t.name AS tournament_name, d.date as legacy_date, d.tournament_id
+                t.name AS tournament_name, d.date as legacy_date, d.tournament_id,
+                t.partner AS partner
                 FROM debates d
                 LEFT JOIN categories c ON d.id = c.debate_id
                 LEFT JOIN tournaments t on t.tournament_id = d.tournament_id
@@ -38,7 +39,8 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
              "categories": json.loads(i[8]),
              "tournament": i[9],
              "legacy_date": i[10],
-             "tournament_id": i[11]
+             "tournament_id": i[11],
+             "partner": i[12]
         } for i in x]
         return r
     except sqlite3.Error as e:

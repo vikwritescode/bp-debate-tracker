@@ -15,7 +15,7 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
     try:
         cur = db_conn.cursor()
         cur.execute("""
-                SELECT tournament_id, name, date, speaker_standing, team_standing, rooms from tournaments
+                SELECT tournament_id, name, date, speaker_standing, team_standing, rooms, partner from tournaments
                 WHERE user_id = ?
                     """, (uid,))
         x = cur.fetchall()
@@ -25,7 +25,8 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
              "date": i[2],
              "speaker_standing": i[3],
              "team_standing": i[4],
-             "rooms": i[5]
+             "rooms": i[5],
+             "partner": i[6]
              }
             for i in x]
         return r
