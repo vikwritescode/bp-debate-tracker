@@ -23,13 +23,13 @@ cur = con.cursor()
 
 
 
-# create us a table for debates if not already there
+# create us a table for BP debates if not already there
 cur.execute("""
 CREATE TABLE IF NOT EXISTS debates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     date DATE NOT NULL,
-    position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'ABS')),
+    position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', , 'AFF', 'NEG', 'ABS')),
     points INTEGER NOT NULL CHECK(points >= 0 AND points <= 3),
     speaks INTEGER NOT NULL,
     infoslide TEXT NOT NULL,
@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     speaker_standing INTEGER NOT NULL default 0,
     team_standing INTEGER NOT NULL default 0,
     rooms INTEGER NOT NULL default 0,
+    format TEXT NOT NULL CHECK(format IN ('BP', 'WSDC', 'AUS')) DEFAULT 'BP',
     partner TEXT,
     tab_url TEXT,
     speaker_url TEXT,

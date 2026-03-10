@@ -40,6 +40,20 @@ except sqlite3.OperationalError as e:
     
     else:
         raise
+
+# add format column to tournaments
+try:
+    cur.execute("ALTER TABLE tournaments ADD COLUMN format TEXT NOT NULL CHECK(format IN ('BP', 'WSDC', 'AUS')) DEFAULT 'BP'")
+    conn.commit()
+
+except sqlite3.OperationalError as e:
+    conn.rollback()
+    if "duplicate column name" in str(e):
+        print("Columns already exist, skipping migration (c)")
     
+    else:
+        raise
+    
+
 finally:
     conn.close()
