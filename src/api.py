@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     team_standing INTEGER NOT NULL default 0,
     rooms INTEGER NOT NULL default 0,
     format TEXT NOT NULL CHECK(format IN ('BP', 'WSDC', 'AUS')) DEFAULT 'BP',
+    substantive BIT NOT NULL DEFAULT 1,
     partner TEXT,
     tab_url TEXT,
     speaker_url TEXT,

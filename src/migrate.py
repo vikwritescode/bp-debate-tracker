@@ -44,6 +44,7 @@ except sqlite3.OperationalError as e:
 # add format column to tournaments
 try:
     cur.execute("ALTER TABLE tournaments ADD COLUMN format TEXT NOT NULL CHECK(format IN ('BP', 'WSDC', 'AUS')) DEFAULT 'BP'")
+    cur.execute("ALTER TABLE tournaments ADD COLUMN substantive BIT NOT NULL DEFAULT 1")
     conn.commit()
 
 except sqlite3.OperationalError as e:
