@@ -353,7 +353,7 @@ def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db
     :param user: firebase user
     :type user: dict
     :param db: sqlite3 database object
-    :type db: sqlite3.Connection
+    :type db: sqlite3.Connection, request: Request = None
     """
     try:
         return service.delete_record(user["uid"], debate_id, db)
@@ -380,8 +380,34 @@ def api_delete_tournament(tournament_id: int, user: dict = Depends(get_current_u
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@app.post("/api/wsdc/import")
+def import_wsdc(tourn_data: TournamentImportModel, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Import a WSDC tournament from tab.
     
-    
+    :param tourn_data: Data needed to fetch the tournament records
+    :type tourn_data: WSDCTournamentImportModel
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.import_wsdc_records(
+            user_uid=user["uid"],
+            tourn_url=tourn_data.url,
+            tourn_slug=tourn_data.slug,
+            speaker_url=tourn_data.speaker,
+            speaker_date=tourn_data.date,
+            db=db, 
+            request=request)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
+    except TabBrokenError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab broken")
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
