@@ -23,13 +23,14 @@ cur = con.cursor()
 
 
 
-# create us a table for debates if not already there
+# create us a table for BP debates if not already there
 cur.execute("""
 CREATE TABLE IF NOT EXISTS debates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     date DATE NOT NULL,
-    position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'ABS')),
+    position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'AFF', 'NEG', 'ABS')),
+    substantive BIT NOT NULL DEFAULT 1,
     points INTEGER NOT NULL CHECK(points >= 0 AND points <= 3),
     speaks INTEGER NOT NULL,
     infoslide TEXT NOT NULL,
@@ -123,6 +124,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     speaker_standing INTEGER NOT NULL default 0,
     team_standing INTEGER NOT NULL default 0,
     rooms INTEGER NOT NULL default 0,
+    format TEXT NOT NULL CHECK(format IN ('BP', 'WSDC', 'AUS')) DEFAULT 'BP',
     partner TEXT,
     tab_url TEXT,
     speaker_url TEXT,
@@ -351,7 +353,7 @@ def api_delete_debate(debate_id: int, user: dict = Depends(get_current_user), db
     :param user: firebase user
     :type user: dict
     :param db: sqlite3 database object
-    :type db: sqlite3.Connection
+    :type db: sqlite3.Connection, request: Request = None
     """
     try:
         return service.delete_record(user["uid"], debate_id, db)
@@ -378,8 +380,34 @@ def api_delete_tournament(tournament_id: int, user: dict = Depends(get_current_u
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@app.post("/api/wsdc/import")
+def import_wsdc(tourn_data: TournamentImportModel, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Import a WSDC tournament from tab.
     
-    
+    :param tourn_data: Data needed to fetch the tournament records
+    :type tourn_data: WSDCTournamentImportModel
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.import_wsdc_records(
+            uid=user["uid"],
+            tab_url=tourn_data.url,
+            slug=tourn_data.slug,
+            speaker_url=tourn_data.speaker,
+            date=tourn_data.date,
+            con=db, 
+            request=request)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
+    except TabBrokenError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab broken")
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
