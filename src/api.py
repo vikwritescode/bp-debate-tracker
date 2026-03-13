@@ -395,12 +395,12 @@ def import_wsdc(tourn_data: TournamentImportModel, request: Request, user: dict 
     """
     try:
         return service.import_wsdc_records(
-            user_uid=user["uid"],
-            tourn_url=tourn_data.url,
-            tourn_slug=tourn_data.slug,
+            uid=user["uid"],
+            tab_url=tourn_data.url,
+            slug=tourn_data.slug,
             speaker_url=tourn_data.speaker,
-            speaker_date=tourn_data.date,
-            db=db, 
+            date=tourn_data.date,
+            con=db, 
             request=request)
     except TabAuthError as e:
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
