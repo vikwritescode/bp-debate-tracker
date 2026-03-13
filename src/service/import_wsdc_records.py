@@ -1,31 +1,99 @@
-
-import sqlite3
-
+from utils import get_wsdc_data, correct_url
+from ai import classify
 from fastapi import Request
-from utils.get_wsdc_data import get_wsdc_data
-from utils import correct_url
+import sqlite3
+from datetime import datetime
+from models import TabAuthError, TabBrokenError
 
-def import_wsdc_records(
-    user_uid: str,
-    tourn_url: str,
-    tourn_slug: str,
-    speaker_url: str,
-    speaker_date,
-    db: sqlite3.Connection,
-    request: Request,
-):
+def validate_date_format(date_string: str):
+    """Validate YYYY-MM-DD format only"""
+    try:
+        datetime.strptime(date_string, "%Y-%m-%d")
+        return date_string
+    except ValueError:
+        raise ValueError("Invalid Date Format!")
+        
+def import_wsdc_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: str, con: sqlite3.Connection, request: Request):
     """
-    Import a WSDC tournament from tab.
-    :param tourn_url: URL of the tournament on tab
-    :type tourn_url: str
-    :param tourn_slug: Slug of the tournament (e.g. "wsdc-2024")
-    :type tourn_slug: str
-    :param speaker_url: URL of the speaker page on tab
+    creates debate records based on a speaker at a tournament
+    
+    :param uid: user UID
+    :type uid: str
+    :param tab_url: tab URL
+    :type tab_url: str
+    :param slug: tournament slug
+    :type slug: str
+    :param speaker_url: speaker URL
     :type speaker_url: str
-    :param db: sqlite3 database object
-    :type db: sqlite3.Connection
-    :param user_uid: UID of the user performing the import
-    :type user_uid: str
+    :param date: date of tournament in yyyy-mm-dd form
+    :type date: str
+    :param con: sqlite3 connection
+    :type con: sqlite3.Connection
+    :param request: request
+    :type request: Request
     """
-    data = get_wsdc_data(correct_url(tourn_url), tourn_slug, speaker_url)
-    return data
+    validate_date_format(date)
+    records = []
+    try:
+        tab_data = get_wsdc_data(correct_url(tab_url), slug, speaker_url)
+        cur = con.cursor()
+        
+        # create and write the tournament
+        tourn_tuple = (date,
+                       uid,
+                       tab_data["name"],
+                       tab_data["speaker_rank"],
+                       tab_data["team_rank"],
+                       tab_data["rooms"],
+                       correct_url(tab_url),
+                       slug,
+                       speaker_url,
+                       "WSDC")
+        
+        cur.execute("""INSERT INTO tournaments (
+            date, user_id, name, speaker_standing,
+            team_standing, rooms, tab_url, slug, speaker_url, format) VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", tourn_tuple)
+        t_id = cur.lastrowid
+        if t_id is None:
+            raise RuntimeError("failed to create tournament record")
+        
+        print(f"{tab_data["team_rank"]} on team, {tab_data["speaker_rank"]} on speaker, {tab_data["rooms"]} rooms")
+        for round in tab_data["results"]:
+            
+            # ignore rounds where people did not speak
+            if not round["spoke"]:
+                continue
+            
+            # make tuple for putting in db
+            rcd = (uid, 
+                            date,
+                            round["position"].upper(),
+                            round["points"],
+                            round["speaks"],
+                            round["info_slide"],
+                            round["motion"],
+                            round["has_reply"],
+                            round["reply"],
+                            t_id)
+            try:
+                cats = classify(round["info_slide"], round["motion"], request)
+            except Exception as e:
+                print("whoops", str(e))
+            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, has_reply, reply, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rcd)
+            p_key = cur.lastrowid
+            if p_key is None:
+                raise RuntimeError("did not insert record")
+            tuples = [(p_key, uid, c) for c in cats]
+            cur.executemany("INSERT INTO categories (debate_id, user_id, category) VALUES (?, ?, ?)", tuples)
+    except (TabAuthError, TabBrokenError) as e:
+        print("raising...")
+        raise
+    except Exception as e:
+        raise RuntimeError("error fetching participant data")
+    try:
+        # cur.executemany("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion) VALUES (?, ?, ?, ?, ?, ?, ?)", records)
+        con.commit()
+    except Exception as e:
+        raise sqlite3.DatabaseError("error writing to DB")
+    return {"message": "records inserted succesfully"}
