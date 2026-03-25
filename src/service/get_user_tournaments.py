@@ -15,8 +15,23 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
     try:
         cur = db_conn.cursor()
         cur.execute("""
-                SELECT tournament_id, name, date, speaker_standing, team_standing, rooms, partner from tournaments
-                WHERE user_id = ?
+                    SELECT
+                    t.tournament_id,
+                    t.name,
+                    t.date,
+                    t.speaker_standing,
+                    t.team_standing,
+                    t.rooms,
+                    t.partner,
+                    t.format,
+                    COALESCE(SUM(d.points), 0) AS total_points,
+                    COALESCE(AVG(d.speaks), 0) AS avg_speaks
+                    FROM tournaments t
+                    LEFT JOIN debates d ON d.tournament_id = t.tournament_id
+                    WHERE t.user_id = ?
+                    GROUP BY
+                      t.tournament_id, t.name, t.date, t.speaker_standing,
+                      t.team_standing, t.rooms, t.partner;
                     """, (uid,))
         x = cur.fetchall()
         r = [
@@ -26,7 +41,10 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
              "speaker_standing": i[3],
              "team_standing": i[4],
              "rooms": i[5],
-             "partner": i[6]
+             "partner": i[6],
+             "format": i[7],
+             "total_points": i[8],
+             "avg_speaks": i[9]
              }
             for i in x]
         return r
