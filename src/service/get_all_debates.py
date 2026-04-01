@@ -18,7 +18,7 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
                 SELECT d.id, d.user_id, t.date, d.position, d.points,
                 d.speaks, d.infoslide, d.motion, json_group_array(c.category) AS categories, 
                 t.name AS tournament_name, d.date as legacy_date, d.tournament_id,
-                t.partner AS partner, t.format AS format, d.has_reply, d.reply
+                t.partner AS partner, t.format AS format, d.has_reply, d.reply, d.sp_order
                 
                 FROM debates d
                 LEFT JOIN categories c ON d.id = c.debate_id
@@ -44,7 +44,8 @@ def get_all_debates(uid: str, db_conn: sqlite3.Connection) -> list:
              "partner": i[12],
              "format": i[13],
              "has_reply": bool(i[14]),
-             "reply": i[15]
+             "reply": i[15],
+             "order": i[16]
         } for i in x]
         return r
     except sqlite3.Error as e:

@@ -1,4 +1,4 @@
-from utils import get_data, correct_url
+from utils import get_australs_data, correct_url
 from ai import classify
 from fastapi import Request
 import sqlite3
@@ -13,7 +13,7 @@ def validate_date_format(date_string: str):
     except ValueError:
         raise ValueError("Invalid Date Format!")
         
-def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: str, con: sqlite3.Connection, request: Request):
+def import_australs_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: str, con: sqlite3.Connection, request: Request):
     """
     creates debate records based on a speaker at a tournament
     
@@ -35,7 +35,7 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
     validate_date_format(date)
     records = []
     try:
-        tab_data = get_data(correct_url(tab_url), slug, speaker_url)
+        tab_data = get_australs_data(correct_url(tab_url), slug, speaker_url)
         cur = con.cursor()
         
         # create and write the tournament
@@ -48,10 +48,11 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                        correct_url(tab_url),
                        slug,
                        speaker_url,
-                       tab_data["partner"],)
+                       "AUS")
+        
         cur.execute("""INSERT INTO tournaments (
             date, user_id, name, speaker_standing,
-            team_standing, rooms, tab_url, slug, speaker_url, partner) VALUES
+            team_standing, rooms, tab_url, slug, speaker_url, format) VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", tourn_tuple)
         t_id = cur.lastrowid
         if t_id is None:
@@ -72,13 +73,14 @@ def import_records(uid: str, tab_url: str, slug: str, speaker_url: str, date: st
                             round["speaks"],
                             round["info_slide"],
                             round["motion"],
-                            round["order"],
+                            round["has_reply"],
+                            round["reply"],
                             t_id)
             try:
                 cats = classify(round["info_slide"], round["motion"], request)
             except Exception as e:
                 print("whoops", str(e))
-            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, sp_order, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", rcd)
+            cur.execute("INSERT INTO debates (user_id, date, position, points, speaks, infoslide, motion, has_reply, reply, tournament_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rcd)
             p_key = cur.lastrowid
             if p_key is None:
                 raise RuntimeError("did not insert record")

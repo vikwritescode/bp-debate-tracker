@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS debates (
     user_id TEXT NOT NULL,
     date DATE NOT NULL,
     position TEXT NOT NULL CHECK(position IN ('OG', 'OO', 'CG', 'CO', 'AFF', 'NEG', 'ABS')),
+    sp_order INTEGER NOT NULL CHECK("order" >= 0 AND "order" <= 3) DEFAULT 0,
     substantive BIT NOT NULL DEFAULT 1,
     points INTEGER NOT NULL CHECK(points >= 0 AND points <= 3),
     speaks INTEGER NOT NULL,
@@ -395,6 +396,34 @@ def import_wsdc(tourn_data: TournamentImportModel, request: Request, user: dict 
     """
     try:
         return service.import_wsdc_records(
+            uid=user["uid"],
+            tab_url=tourn_data.url,
+            slug=tourn_data.slug,
+            speaker_url=tourn_data.speaker,
+            date=tourn_data.date,
+            con=db, 
+            request=request)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
+    except TabBrokenError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab broken")
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+@app.post("/api/australs/import")
+def import_australs(tourn_data: TournamentImportModel, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Import an australs tournament from tab.
+    
+    :param tourn_data: Data needed to fetch the tournament records
+    :type tourn_data: WSDCTournamentImportModel
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.import_australs_records(
             uid=user["uid"],
             tab_url=tourn_data.url,
             slug=tourn_data.slug,

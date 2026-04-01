@@ -4,9 +4,9 @@ import aiohttp
 import utils
 from models import TabAuthError, TabBrokenError
 
-def get_data(tab_url: str, slug: str, speaker_url: str):
+def get_australs_data(tab_url: str, slug: str, speaker_url: str):
     """
-    Make API requests, getting the data for a speaker at a tournament
+    Make API requests, getting the data for a speaker at an australs tournament
     
     :param tab_url: the tab URL
     :type tab_url: str
@@ -126,7 +126,8 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         result["info_slide"] = ""
         result["motion"] = "blank..?"
         result["speaks"] = 0 # default, if not replaced by round
-        result["order"] = 0 # default, if didn't speak
+        result["reply"] = 0 # default if no reply
+        result["has_reply"] = False
         result["spoke"] = False
         
         # getting data from round URL (already fetched tho)
@@ -157,14 +158,17 @@ def get_data(tab_url: str, slug: str, speaker_url: str):
         speeches = round["speeches"]
         
         if len(speeches) > 0:
-            print(speeches)
-            speaker_speech = max(speeches, key=lambda x: x["score"])
-            speaker_score = speaker_speech["score"]
-            speaker_ord = speaker_speech["position"]
-            results[round["round"]]["speaks"] = speaker_score
-            results[round["round"]]["order"] = speaker_ord
+            # TODO: get actual AND reply speaks
+            substantives = [s["score"] for s in speeches if s["position"] < 4]
+            replies = [s["score"] for s in speeches if s["position"] == 4]
+            if len(replies) > 0:
+                result["has_reply"] = True
+            substantive_speaks = max(substantives)
+            reply_speaks = max(replies) if len(replies) > 0 else 0
+            
+            results[round["round"]]["speaks"] = substantive_speaks
             results[round["round"]]["spoke"] = True
-    
+            results[round["round"]]["reply"] = reply_speaks
     return {
         "name": tourney_name,
         "speaker_rank": speaker_rank,
