@@ -10,3 +10,4 @@ from .get_start_date import get_start_date
 from .delete_tournament import delete_tournament
 from .import_wsdc_records import import_wsdc_records
 from .import_australs_records import import_australs_records
+from .refresh_tournament import refresh_tournament

@@ -437,6 +437,31 @@ def import_australs(tourn_data: TournamentImportModel, request: Request, user: d
         raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab broken")
     except Exception as e:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-    
+
+@app.post("/api/refresh/{tournament_id}")
+def refresh_tournament(tournament_id: int, request: Request, user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    """
+    Refresh a tournament's data from tab.
+
+    :param tournament_id: tournament ID
+    :type tournament_id: int
+    :param request: request object
+    :type request: Request
+    :param user: firebase user
+    :type user: dict
+    :param db: sqlite3 database connection
+    :type db: sqlite3.Connection
+    """
+    try:
+        return service.refresh_tournament(tournament_id=tournament_id, uid=user["uid"], con=db, request=request)
+    except TabAuthError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab auth")
+    except TabBrokenError as e:
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, "tab broken")
+    except NotFoundError as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "tournament not found")
+    except Exception as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+   
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
