@@ -1,5 +1,5 @@
 import sqlite3
-from utils import get_data
+from utils import get_data, get_australs_data, get_wsdc_data
 from service import delete_tournament, import_records, import_australs_records, import_wsdc_records
 from fastapi import Request
 def refresh_tournament(tournament_id: int, uid: str, con: sqlite3.Connection, request: Request):
@@ -24,6 +24,18 @@ def refresh_tournament(tournament_id: int, uid: str, con: sqlite3.Connection, re
     
     if tab_url is None or slug is None or speaker_url is None or date is None or format is None:
         raise RuntimeError("this record cannot be refreshed automatically")
+    
+    # test URL to make sure it's still valid before deleting old record
+    try:
+        if format == "BP":
+            get_data(tab_url, slug, speaker_url)
+        elif format == "AUS":
+            get_australs_data(tab_url, slug, speaker_url)
+        elif format == "WSDC":
+            get_wsdc_data(tab_url, slug, speaker_url)
+    except Exception as e:
+        raise RuntimeError("tournament data is not accessible, cannot refresh")
+    
     
     # delete old record
     print(f"attempting to delete tournament with id {tournament_id} for user {uid}")
