@@ -24,6 +24,7 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
                     t.rooms,
                     t.partner,
                     t.format,
+                    t.tab_url,
                     COALESCE(SUM(d.points), 0) AS total_points,
                     COALESCE(AVG(d.speaks), 0) AS avg_speaks
                     FROM tournaments t
@@ -43,8 +44,9 @@ def get_user_tournaments(uid: str, db_conn: sqlite3.Connection) -> list:
              "rooms": i[5],
              "partner": i[6],
              "format": i[7],
-             "total_points": i[8],
-             "avg_speaks": i[9]
+             "tab_url": i[8],
+             "total_points": i[9],
+             "avg_speaks": i[10]
              }
             for i in x]
         return r
