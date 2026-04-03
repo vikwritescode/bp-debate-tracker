@@ -22,11 +22,12 @@ def refresh_tournament(tournament_id: int, uid: str, con: sqlite3.Connection, re
         raise RuntimeError("tournament not found")
     tab_url, slug, speaker_url, date, format = res
     
+    if tab_url is None or slug is None or speaker_url is None or date is None or format is None:
+        raise RuntimeError("this record cannot be refreshed automatically")
     
     # delete old record
     print(f"attempting to delete tournament with id {tournament_id} for user {uid}")
     delete_tournament(tournament_id, uid, con)
-    
     # import new record
     # use existing service to do this
     if format == "BP":
