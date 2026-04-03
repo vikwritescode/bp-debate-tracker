@@ -141,7 +141,9 @@ def get_db():
     function to pass database connections to the service layer,
     closing even if errors occur
     """
-    conn = sqlite3.connect('debates.db')
+    # FastAPI may execute sync dependencies/endpoints on worker threads,
+    # so disable sqlite's same-thread guard for request-scoped connections.
+    conn = sqlite3.connect('debates.db', check_same_thread=False)
     try:
         yield conn
     finally:
